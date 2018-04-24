@@ -14,4 +14,5 @@ public static class Inputs
     public const string AIM = "Aim";
     public const string SWITCHCAMERARIGHT = "CameraRight";
     public const string SWITCHCAMERALEFT = "CameraLeft";
+    public const string SWITCHWEAPON = "WeaponSwitch";
 }

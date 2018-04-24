@@ -4,21 +4,23 @@ using UnityEngine;
 
 public class ToggleTargetOnEnemy : MonoBehaviour
 {
-
+    #region Variables
     public float radiusToCheck;                     // The radius to check for targets
     public float distanceToRemoveTargeting;         // If object is too far away, remove targeting.
+    public GameObject targetCanvas;
 
     Transform nearestTarget;                        // The transform position of the nearest target
     float closestDistanceSqr;                       // The closest distance to the target
     Vector3 currentPosition;                        // The current position of this object
     bool stateOfTargeting;                          // The bool to check if targeting is already applied
-    PlayerMovement movementScript;                  // Reference for the movement script to control turning
+    IMovement movementScript;                       // Reference for the movement script to control turning
     public LayerMask layerToCheck;                  // The layer in to check for targets
+    #endregion
 
     void Start()
     {
         stateOfTargeting = false;
-        movementScript = GetComponent<PlayerMovement>();
+        movementScript = GetComponent<IMovement>();
         nearestTarget = null;
     }
 
@@ -34,13 +36,14 @@ public class ToggleTargetOnEnemy : MonoBehaviour
     void ToggleTargeting()
     {
         if (!stateOfTargeting)
-            CheckForObjectsAndSetTarget();
+            FindAndTargetClosestObjectByLayerAndTag();
         else
             RemoveTargeting();
     }
 
-    void CheckForObjectsAndSetTarget()
+    void FindAndTargetClosestObjectByLayerAndTag()
     {
+        //Get objects in radius by layer
         Collider[] objects = Physics.OverlapSphere(transform.position, radiusToCheck, layerToCheck);
 
         // Set max distance
@@ -73,14 +76,27 @@ public class ToggleTargetOnEnemy : MonoBehaviour
             stateOfTargeting = true;
             movementScript.ToggleTargeting(true, nearestTarget);
             Debug.Log("Target acquired");
+            ShowTargetVisual();
         }
     }
 
     void RemoveTargeting()
     {
-        Debug.Log("Targeting removed");
+        Debug.Log("Target too far away");
         movementScript.ToggleTargeting(false, nearestTarget);
         nearestTarget = null;
         stateOfTargeting = false;
+        RemoveTargetVisual();
     }
+
+    #region Visuals
+    void ShowTargetVisual()
+    {
+        targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(true, nearestTarget.gameObject);
+    }
+    void RemoveTargetVisual()
+    {
+        targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(false, null);
+    }
+    #endregion
 }

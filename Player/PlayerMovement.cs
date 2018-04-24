@@ -1,18 +1,29 @@
 ﻿using StateEnumerators;
+using System;
 using UnityEngine;
 
 
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviour, IMovement
 {
     //-------------------------------------------------------
+    #region IMovement interface
+    public void Grounded(float horizontal, float vertical)
+    {
+        throw new NotImplementedException();
+    }
+
     public void ToggleTargeting(bool value, Transform target)
     {
         currentlyTargeting = value;
         this.target = target;
     }
+    public void Airborne(float horizontal, float vertical)
+    {
+        throw new NotImplementedException();
+    }
 
-    public void CameraAngleChange(cameraState cameraAngle)
+    public void CameraAngle(cameraState cameraAngle)
     {
         switch (cameraAngle)
         {
@@ -30,7 +41,7 @@ public class PlayerMovement : MonoBehaviour
                 break;
         }
     }
-
+#endregion
     //-------------------------------------------------------
 
 
@@ -83,7 +94,7 @@ public class PlayerMovement : MonoBehaviour
             TargetTurning();
 
         // Animate the player.
-        Animating(horizontalAxis, verticalAxis);
+        Animating(horizontalAxis, verticalAxis, sprint);
     }
 
     void Move(float h, float v, bool sprint)
@@ -149,12 +160,15 @@ public class PlayerMovement : MonoBehaviour
         playerRigidbody.MoveRotation(Quaternion.LookRotation(playerToTarget));
     }
 
-    void Animating(float h, float v)
+    void Animating(float h, float v, bool sprint)
     {
         // Create a boolean that is true if either of the input axes is non-zero.
-        bool walking = h != 0f || v != 0f;
+        bool moving = h != 0f || v != 0f;
 
         // Tell the animator whether or not the player is walking.
-        anim.SetBool("IsWalking", walking);
+        if (moving && sprint)
+            anim.SetBool("IsSprinting", sprint);
+        else
+            anim.SetBool("IsWalking", moving);
     }
 }

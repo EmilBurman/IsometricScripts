@@ -5,14 +5,14 @@ using StateEnumerators;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target;            // The position that that camera will be following.
-    public float smoothing = 5f;        // The speed with which the camera will be following.
+    public Transform target;                    // The position that that camera will be following.
+    public float smoothing = 5f;                // The speed with which the camera will be following.
 
-    Vector3 offset;                     // The initial offset from the target.
+    Vector3 offset;                             // The initial offset from the target.
     public float speedToRotateCamera = 0.3F;
 
 
-    bool rotatingCamera;
+    float finishRotation;
     cameraState currentCameraPosition;
     cameraState cameraState;
     public GameObject cameraPosition1, cameraPosition2, cameraPosition3, cameraPosition4;
@@ -39,7 +39,8 @@ public class CameraFollow : MonoBehaviour
             case cameraState.following:
                 if (cameraLeft || cameraRight)
                 {
-                    RotateCamera(cameraLeft, cameraRight);
+                    SwitchCameraPosition(cameraLeft, cameraRight);
+                    finishRotation = speedToRotateCamera;
                     cameraState = cameraState.rotating;
                 }
                 else
@@ -52,11 +53,17 @@ public class CameraFollow : MonoBehaviour
                 }
                 break;
             case cameraState.rotating:
-                Invoke("WaitBetweenCameraSwitches", 0.01f);
+                finishRotation -= Time.deltaTime;
+                if (finishRotation <= 0)
+                {
+                    finishRotation = 0;
+                    cameraState = cameraState.following;
+                }
+
                 break;
         }
     }
-    void RotateCamera(bool left, bool right)
+    void SwitchCameraPosition(bool left, bool right)
     {
         Vector3 toPosition = transform.position;
         Quaternion toRotation = transform.rotation;
@@ -130,30 +137,26 @@ public class CameraFollow : MonoBehaviour
                 Debug.Log("Camera is in a weird rotation");
                 break;
         }
-
+        // Offset the follow camera
         offset = toPosition - target.position;
-        changeMovementDisplacement.CameraAngleChange(currentCameraPosition);
+
+        // Displace the movement input to new camera position
+        changeMovementDisplacement.CameraAngle(currentCameraPosition);
+
+        // Rotate the camera
         StartCoroutine(MoveCamera(transform.position, toPosition, transform.rotation, toRotation, speedToRotateCamera));
     }
 
-    void WaitBetweenCameraSwitches()
-    {
-        cameraState = cameraState.following;
-    }
-
-    IEnumerator MoveCamera(Vector3 startPosition, Vector3 toPosition, Quaternion startRotation, Quaternion toRotation, float duration)
+    IEnumerator MoveCamera(Vector3 fromPosition, Vector3 toPosition, Quaternion fromRotation, Quaternion toRotation, float duration)
     {
         //create float to store the time this coroutine is operating
-        float time = duration + .2f;
+        float elapsedTime = 0;
 
-        //we call this loop every frame while our custom boostDuration is a higher value than the "time" variable in this coroutine
-        while (duration < time)
+        while (elapsedTime < duration)
         {
-            Debug.Log("Rotating");
-            rotatingCamera = true;
-            time -= Time.deltaTime;
-            transform.position = Vector3.Lerp(startPosition, toPosition, duration);
-            transform.rotation = Quaternion.Slerp(startRotation, toRotation, duration);
+            transform.position = Vector3.Lerp(fromPosition, toPosition, (elapsedTime / duration));
+            transform.rotation = Quaternion.Slerp(fromRotation, toRotation, (elapsedTime / duration));
+            elapsedTime += Time.deltaTime;
 
             yield return 0;
         }

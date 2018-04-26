@@ -14,8 +14,11 @@ public static class Inputs
 
     //Combat
     public const string ATTACK = "Attack";
+    public const string PARRY = "Parry";
+    public const string THROW = "Throw";
     public const string AIM = "Aim";
     public const string SWITCHWEAPON = "WeaponSwitch";
+    public const string DRAWWEAPON = "WeaponDraw";
     public const string HEAL = "Heal";
     public const string TARGET = "Target";
 

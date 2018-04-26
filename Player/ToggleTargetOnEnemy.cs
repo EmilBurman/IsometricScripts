@@ -26,7 +26,7 @@ public class ToggleTargetOnEnemy : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetButtonDown(Inputs.ACTION))
+        if (Input.GetButtonDown(Inputs.TARGET))
             ToggleTargeting();
 
         if (stateOfTargeting && Vector3.Distance(nearestTarget.position, transform.position) > distanceToRemoveTargeting)

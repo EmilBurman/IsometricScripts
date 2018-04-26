@@ -77,11 +77,11 @@ public class PlayerMovement : MonoBehaviour, IMovement
     void FixedUpdate()
     {
         // Store the input axes.
-        float horizontalAxis = Input.GetAxisRaw(Inputs.HORIZONTAL);
-        float verticalAxis = Input.GetAxisRaw(Inputs.VERTICAL);
+        float horizontalAxis = Input.GetAxisRaw(Inputs.HORIZONTALMOVEMENT);
+        float verticalAxis = Input.GetAxisRaw(Inputs.VERTICALMOVEMENT);
         bool jump = Input.GetButtonDown(Inputs.JUMP);
         bool sprint = Input.GetButton(Inputs.SPRINT);
-        bool aim = Input.GetButton(Inputs.AIM);
+        bool manualAim = Input.GetButton(Inputs.AIM);
 
         // Move the player around the scene.
         Move(horizontalAxis, verticalAxis, sprint);
@@ -89,7 +89,7 @@ public class PlayerMovement : MonoBehaviour, IMovement
 
         // Turn the player to face the mouse cursor if aiming or towards target if toggled.
         if (!currentlyTargeting)
-            Turning(aim);
+            Turning(manualAim);
         else
             TargetTurning();
 

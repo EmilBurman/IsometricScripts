@@ -28,12 +28,12 @@ public class PlayerController : MonoBehaviour, IController3D {
 
     public float MoveHorizontal()
     {
-        return Input.GetAxisRaw(Inputs.HORIZONTAL);
+        return Input.GetAxisRaw(Inputs.HORIZONTALMOVEMENT);
     }
 
     public float MoveVertical()
     {
-        return Input.GetAxisRaw(Inputs.VERTICAL);
+        return Input.GetAxisRaw(Inputs.VERTICALMOVEMENT);
     }
 
     public bool Sprint()

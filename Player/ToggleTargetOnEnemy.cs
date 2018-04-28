@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using StateEnumerators;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,39 +7,49 @@ public class ToggleTargetOnEnemy : MonoBehaviour
 {
     #region Variables
     public float radiusToCheck;                     // The radius to check for targets
-    public float distanceToRemoveTargeting;         // If object is too far away, remove targeting.
-    public GameObject targetCanvas;
+    public float distanceToRemoveTargeting;         // If object is too far away, remove targeting
+    public GameObject targetCanvas;                 // Where to find script that controls target circle
+    public string tagToTarget;                      // The tag on which to search for targets
+    public LayerMask layerToCheck;                  // The layer in to check for targets
 
     Transform nearestTarget;                        // The transform position of the nearest target
     float closestDistanceSqr;                       // The closest distance to the target
     Vector3 currentPosition;                        // The current position of this object
-    bool stateOfTargeting;                          // The bool to check if targeting is already applied
+    bool currentlyTargeting;                        // Bool for keeping track of targeting is active
     IMovement movementScript;                       // Reference for the movement script to control turning
-    public LayerMask layerToCheck;                  // The layer in to check for targets
+    TargetState stateOfTargeting;                   // The state of targeting
     #endregion
 
     void Start()
     {
-        stateOfTargeting = false;
+        if (tagToTarget == "")
+            tagToTarget = Tags.ENEMY;
+
+        stateOfTargeting = TargetState.NoTarget;
         movementScript = GetComponent<IMovement>();
+
+        currentlyTargeting = false;
         nearestTarget = null;
     }
 
     void Update()
     {
-        if (Input.GetButtonDown(Inputs.TARGET))
-            ToggleTargeting();
-
-        if (stateOfTargeting && Vector3.Distance(nearestTarget.position, transform.position) > distanceToRemoveTargeting)
-            RemoveTargeting();
-    }
-
-    void ToggleTargeting()
-    {
-        if (!stateOfTargeting)
-            FindAndTargetClosestObjectByLayerAndTag();
-        else
-            RemoveTargeting();
+        switch (stateOfTargeting)
+        {
+            case TargetState.NoTarget:
+                if (Input.GetButtonDown(Inputs.TARGET))
+                {
+                    FindAndTargetClosestObjectByLayerAndTag();
+                    stateOfTargeting = TargetState.Targeting;
+                }
+                break;
+            case TargetState.Targeting:
+                if (Vector3.Distance(nearestTarget.position, transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
+                    RemoveTargeting();
+                if(Input.GetButtonDown(Inputs.RETARGET))
+                    FindAndTargetClosestObjectByLayerAndTag();
+                break;
+        }
     }
 
     void FindAndTargetClosestObjectByLayerAndTag()
@@ -73,30 +84,23 @@ public class ToggleTargetOnEnemy : MonoBehaviour
         // If a target is found, set targeting as true
         if (nearestTarget != null)
         {
-            stateOfTargeting = true;
-            movementScript.ToggleTargeting(true, nearestTarget);
-            Debug.Log("Target acquired");
-            ShowTargetVisual();
+            currentlyTargeting = true;
+            movementScript.ToggleTargeting(currentlyTargeting, nearestTarget);
+            ToggleTargetVisual();
         }
     }
 
     void RemoveTargeting()
     {
-        Debug.Log("Target too far away");
-        movementScript.ToggleTargeting(false, nearestTarget);
+        currentlyTargeting = false;
         nearestTarget = null;
-        stateOfTargeting = false;
-        RemoveTargetVisual();
+        movementScript.ToggleTargeting(currentlyTargeting, nearestTarget);
+        stateOfTargeting = TargetState.NoTarget;
+        ToggleTargetVisual();
     }
 
-    #region Visuals
-    void ShowTargetVisual()
+    void ToggleTargetVisual()
     {
-        targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(true, nearestTarget.gameObject);
+        targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(currentlyTargeting, nearestTarget.gameObject);
     }
-    void RemoveTargetVisual()
-    {
-        targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(false, null);
-    }
-    #endregion
 }

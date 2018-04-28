@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace StateEnumerators
+﻿namespace StateEnumerators
 {
     public enum DashState
     {
@@ -53,5 +49,11 @@ namespace StateEnumerators
         PatrolRight,
         PatrolLeft,
         Stop
+    }
+
+    public enum TargetState
+    {
+        NoTarget,
+        Targeting
     }
 }

@@ -21,6 +21,7 @@ public static class Inputs
     public const string DRAWWEAPON = "WeaponDraw";
     public const string HEAL = "Heal";
     public const string TARGET = "Target";
+    public const string RETARGET = "ReTarget";
 
     //Dashing
     public const string DASH = "Dash";

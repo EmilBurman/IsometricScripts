@@ -46,7 +46,7 @@ public class ToggleTargetOnEnemy : MonoBehaviour
             case TargetState.Targeting:
                 if (Vector3.Distance(nearestTarget.position, transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
                     RemoveTargeting();
-                if(Input.GetButtonDown(Inputs.RETARGET))
+                if (Input.GetButtonDown(Inputs.RETARGET))
                     FindAndTargetClosestObjectByLayerAndTag();
                 break;
         }
@@ -101,6 +101,13 @@ public class ToggleTargetOnEnemy : MonoBehaviour
 
     void ToggleTargetVisual()
     {
-        targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(currentlyTargeting, nearestTarget.gameObject);
+        GameObject position;
+
+        if (nearestTarget != null)
+            position = nearestTarget.gameObject;
+        else
+            position = null;
+
+        targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(currentlyTargeting, position);
     }
 }

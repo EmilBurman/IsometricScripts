@@ -5,6 +5,7 @@ using StateEnumerators;
 
 public class CameraFollow : MonoBehaviour
 {
+    #region Variables
     public Transform target;                    // The position that that camera will be following.
     public float smoothing = 5f;                // The speed with which the camera will be following.
 
@@ -17,6 +18,7 @@ public class CameraFollow : MonoBehaviour
     cameraState cameraState;
     public GameObject cameraPosition1, cameraPosition2, cameraPosition3, cameraPosition4;
     PlayerMovement changeMovementDisplacement;
+    #endregion
 
     void Start()
     {
@@ -63,6 +65,7 @@ public class CameraFollow : MonoBehaviour
                 break;
         }
     }
+
     void SwitchCameraPosition(bool left, bool right)
     {
         Vector3 toPosition = transform.position;

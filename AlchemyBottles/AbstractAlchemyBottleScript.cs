@@ -14,16 +14,16 @@ public abstract class AbstractAlchemyBottleScript : MonoBehaviour {
 		
 	}
 
-    void OnCollision(colider col)
-    {
-
-    }
-
     #region Variables
     public string tagsToCheck;
     #endregion
 
-    #region Target checks
+    #region Target management
+    void OnCollisionEnter(Collision col)
+    {
+        FindTargetsByLayerAndTag();
+    }
+
     void FindTargetsByLayerAndTag()
     {
         //Get objects in radius by layer
@@ -43,13 +43,31 @@ public abstract class AbstractAlchemyBottleScript : MonoBehaviour {
             }
         }
 
-        // If a target is found, set targeting as true
-        if (nearestTarget != null)
-        {
-            currentlyTargeting = true;
-            movementScript.ToggleTargeting(currentlyTargeting, nearestTarget);
-            ToggleTargetVisual();
-        }
+        // After all targets with correct tags are set as hit, remove this game object
+        DeactivateGameObject();
+
+
+    }
+
+    void SetStatus()
+    {
+        // Get status management component and set effect as true
+    }
+    #endregion
+    #region Visual management
+    void BreakOnImpact()
+    {
+
+    }
+
+    void SplatterOnImpact()
+    {
+
+    }
+
+    void DeactivateGameObject()
+    {
+
     }
     #endregion
 }

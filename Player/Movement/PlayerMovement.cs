@@ -2,8 +2,6 @@
 using System;
 using UnityEngine;
 
-
-
 public class PlayerMovement : MonoBehaviour, IMovement
 {
     //-------------------------------------------------------
@@ -41,7 +39,7 @@ public class PlayerMovement : MonoBehaviour, IMovement
                 break;
         }
     }
-#endregion
+    #endregion
     //-------------------------------------------------------
 
 

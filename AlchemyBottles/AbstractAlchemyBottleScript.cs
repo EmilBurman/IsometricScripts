@@ -3,24 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class AbstractAlchemyBottleScript : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
-
     #region Variables
-    public string tagsToCheck;
+    public float radiusToCheck;                     // The radius to check for targets
+    public string tagToTarget;                      // The tag on which to search for targets
+    public LayerMask layerToCheck;                  // The layer in to check for targets
+
+    float closestDistanceSqr;                       // The closest distance to the target
+    Vector3 currentPosition;                        // The current position of this object
     #endregion
+
+    void Start()
+    {
+        if (tagToTarget == "")
+            tagToTarget = Tags.ENEMY;
+    }
 
     #region Target management
     void OnCollisionEnter(Collision col)
     {
+        BreakOnImpact();
+        SplatterOnImpact();
         FindTargetsByLayerAndTag();
     }
 
@@ -37,7 +39,7 @@ public abstract class AbstractAlchemyBottleScript : MonoBehaviour {
 
         foreach (Collider target in objects)
         {
-            if (target.tag == Tags.ENEMY)
+            if (target.tag == tagToTarget)
             {
                 //Set them as hit by bottle
             }

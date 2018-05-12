@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System;
 using StateEnumerators;
 
 public class CameraFollow : MonoBehaviour
@@ -165,3 +164,4 @@ public class CameraFollow : MonoBehaviour
         }
     }
 }
+

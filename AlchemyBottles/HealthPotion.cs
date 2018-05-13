@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-public abstract class AbstractAlchemyBottleScript : MonoBehaviour
+public class HealthPotion : MonoBehaviour
 {
     #region Variables
     public float radiusToCheck;                     // The radius to check for targets
@@ -46,7 +48,7 @@ public abstract class AbstractAlchemyBottleScript : MonoBehaviour
         {
             if (target.tag == tagToTarget)
             {
-                //Set them as hit by bottle
+                SetStatus(target);
             }
         }
 
@@ -56,9 +58,9 @@ public abstract class AbstractAlchemyBottleScript : MonoBehaviour
 
     }
 
-    void SetStatus()
+    void SetStatus(Collider targetToSetStatus)
     {
-        // Get status management component and set effect as true
+        Debug.Log(targetToSetStatus.tag);
     }
     #endregion
     #region Visual management

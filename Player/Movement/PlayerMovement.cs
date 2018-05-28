@@ -23,21 +23,7 @@ public class PlayerMovement : MonoBehaviour, IMovement
 
     public void CameraAngle(cameraState cameraAngle)
     {
-        switch (cameraAngle)
-        {
-            case cameraState.position1:
-                movementDisplacement = Quaternion.Euler(180, 45, 0);
-                break;
-            case cameraState.position2:
-                movementDisplacement = Quaternion.Euler(-180, -45, 0);
-                break;
-            case cameraState.position3:
-                movementDisplacement = Quaternion.Euler(180, -135, 0);
-                break;
-            case cameraState.position4:
-                movementDisplacement = Quaternion.Euler(-180, 135, 0);
-                break;
-        }
+
     }
     #endregion
     //-------------------------------------------------------

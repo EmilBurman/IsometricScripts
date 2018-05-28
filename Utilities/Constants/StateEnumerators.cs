@@ -1,9 +1,9 @@
 ﻿namespace StateEnumerators
 {
-    public enum DashState
+    public enum DodgeState
     {
         Ready,
-        Dashing,
+        Dodging,
         Cooldown
     }
 
@@ -36,12 +36,10 @@
 
     public enum cameraState
     {
-        position1,
-        position2,
-        position3,
-        position4,
-        rotating,
-        following
+        Following,
+        Targeting,
+        Sprinting,
+        Interacting
     }
 
     public enum PatrolState

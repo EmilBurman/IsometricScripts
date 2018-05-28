@@ -34,7 +34,20 @@
         Unknown
     }
 
-    public enum cameraState
+    public enum TwoStageState
+    {
+        Ready,
+        Action
+    }
+
+    public enum ThreeStageCooldown
+    {
+        Ready,
+        Action,
+        Cooldown
+    }
+
+    public enum CameraState
     {
         Following,
         Targeting,

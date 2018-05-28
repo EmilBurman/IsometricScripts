@@ -13,8 +13,8 @@ public class CameraFollow : MonoBehaviour
 
 
     float finishRotation;
-    cameraState currentCameraPosition;
-    cameraState cameraState;
+    CameraState currentCameraPosition;
+    CameraState cameraState;
     public GameObject cameraPosition1, cameraPosition2, cameraPosition3, cameraPosition4;
     PlayerMovement changeMovementDisplacement;
     #endregion

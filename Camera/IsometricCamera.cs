@@ -14,7 +14,7 @@ public class IsometricCamera : MonoBehaviour
 
     [Header("Ortographic views of the camera")]
     [SerializeField]
-    cameraState currentCameraState;                             // The current state of the camera
+    CameraState currentCameraState;                             // The current state of the camera
     [SerializeField]
     float followingOrtographicSize;                             // Sets the orthographic size of the camera in this state
     [SerializeField]
@@ -41,11 +41,12 @@ public class IsometricCamera : MonoBehaviour
     float ortographicSizeToCheck;                               // Holder for currently needed ortographic size.
     Vector3 cameraPositionToCheck;                              // Holder for the currently needed camera position.
     bool switchedState;
-    public cameraState testcamera;
+    TwoStageState movingCameraState;
+    public CameraState testcam;
     #endregion
 
     #region Camera interface
-    public void SetCameraState(cameraState switchToState)
+    public void SetCameraState(CameraState switchToState)
     {
         if (switchToState != currentCameraState)
         {
@@ -69,7 +70,7 @@ public class IsometricCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        SetCameraState(testcamera);
+        SetCameraState(testcam);
         cameraStandardFollowPosition = targetPosition.position + offset;
         cameraTargetingPosition = cameraStandardFollowPosition + new Vector3(-9, 21, -25);
         ChangePosition(currentCameraState);
@@ -88,42 +89,52 @@ public class IsometricCamera : MonoBehaviour
         transform.LookAt(targetPosition);
     }
 
-    void ChangePosition(cameraState changeToState)
+    void ChangePosition(CameraState changeToState)
     {
         switch (changeToState)
         {
-            case cameraState.Following:
+            case CameraState.Following:
                 ortographicSizeToCheck = followingOrtographicSize;
                 cameraPositionToCheck = cameraStandardFollowPosition;
                 break;
-            case cameraState.Targeting:
+            case CameraState.Targeting:
                 ortographicSizeToCheck = targetingOrtographicSize;
                 cameraPositionToCheck = cameraTargetingPosition;
                 break;
-            case cameraState.Sprinting:
+            case CameraState.Sprinting:
                 ortographicSizeToCheck = sprintingOrtographicSize;
                 break;
         }
 
-        if (cameraComponent.orthographicSize != ortographicSizeToCheck && switchedState)
-            StartCoroutine(ChangeOrthographicSize(cameraComponent.orthographicSize, ortographicSizeToCheck, timeToChangePosition));
-
-        if ((Vector3.Distance(transform.position, cameraPositionToCheck) > 20f && switchedState) || switchedState)
-            StartCoroutine(MoveCamera(transform.position, cameraPositionToCheck, timeToChangePosition));
-        else
-            transform.position = Vector3.Lerp(transform.position, cameraPositionToCheck, followSmoothing * Time.deltaTime);
+        switch (movingCameraState)
+        {
+            case TwoStageState.Ready:
+                if (switchedState)
+                    movingCameraState = TwoStageState.Action;
+                else
+                    transform.position = Vector3.Lerp(transform.position, cameraPositionToCheck, followSmoothing * Time.deltaTime);
+                break;
+            case TwoStageState.Action:
+                StartCoroutine(ChangeOrthographicSize(cameraComponent.orthographicSize, ortographicSizeToCheck, timeToChangePosition));
+                StartCoroutine(MoveCamera(transform.position, cameraPositionToCheck, timeToChangePosition));
+                break;
+        }
     }
 
     IEnumerator ChangeOrthographicSize(float currentSize, float changeToSize, float duration)
     {
         float elapsedTime = 0;
         Debug.Log("Change ortographic size called");
-        while (elapsedTime < duration)
+        while (elapsedTime < duration || cameraComponent.orthographicSize != changeToSize)
         {
             cameraComponent.orthographicSize = Mathf.Lerp(currentSize, changeToSize, elapsedTime);
             elapsedTime += Time.deltaTime;
+
+            if (Mathf.Abs(cameraComponent.orthographicSize - changeToSize) < 0.005f)
+                cameraComponent.orthographicSize = changeToSize;
             yield return 0;
         }
+        movingCameraState = ThreeStageCooldown.Ready;
         switchedState = false;
     }
 
@@ -136,8 +147,13 @@ public class IsometricCamera : MonoBehaviour
         {
             transform.position = Vector3.Lerp(fromPosition, toPosition, elapsedTime);
             elapsedTime += Time.deltaTime;
+            /*
+            if (Vector3.Distance(transform.position, toPosition) < 5f)
+                transform.position = toPosition;
+                */
             yield return 0;
         }
+        movingCameraState = ThreeStageCooldown.Ready;
         switchedState = false;
     }
 }

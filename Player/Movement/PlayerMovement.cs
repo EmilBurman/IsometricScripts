@@ -21,7 +21,7 @@ public class PlayerMovement : MonoBehaviour, IMovement
         throw new NotImplementedException();
     }
 
-    public void CameraAngle(CameraState cameraAngle)
+    public void CameraAngle(CameraPositionStates cameraAngle)
     {
 
     }

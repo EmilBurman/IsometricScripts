@@ -40,7 +40,6 @@ public class ToggleTargetOnEnemy : MonoBehaviour
                 if (Input.GetButtonDown(Inputs.TARGET))
                 {
                     FindAndTargetClosestObjectByLayerAndTag();
-                    stateOfTargeting = TargetState.Targeting;
                 }
                 break;
             case TargetState.Targeting:
@@ -87,6 +86,7 @@ public class ToggleTargetOnEnemy : MonoBehaviour
             currentlyTargeting = true;
             movementScript.ToggleTargeting(currentlyTargeting, nearestTarget);
             ToggleTargetVisual();
+            stateOfTargeting = TargetState.Targeting;
         }
     }
 

@@ -40,14 +40,14 @@
         Action
     }
 
-    public enum ThreeStageCooldown
+    public enum CameraPositionChangeState
     {
         Ready,
-        Action,
-        Cooldown
+        Changing,
+        Verifying
     }
 
-    public enum CameraState
+    public enum CameraPositionStates
     {
         Following,
         Targeting,

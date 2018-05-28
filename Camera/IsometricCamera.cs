@@ -14,7 +14,7 @@ public class IsometricCamera : MonoBehaviour
 
     [Header("Ortographic views of the camera")]
     [SerializeField]
-    CameraState currentCameraState;                             // The current state of the camera
+    CameraPositionStates currentCameraState;                             // The current state of the camera
     [SerializeField]
     float followingOrtographicSize;                             // Sets the orthographic size of the camera in this state
     [SerializeField]
@@ -30,29 +30,36 @@ public class IsometricCamera : MonoBehaviour
     [SerializeField]
     Vector3 cameraStandardFollowPosition;                       // The standard position of the camera
     [SerializeField]
-    Vector3 cameraTargetingPosition;                                  // The position when targeting an enemy
+    Vector3 cameraTargetingPosition;                            // The position when targeting an enemy
     [SerializeField]
-    Vector3 cameraInteractionPosition;                                // The position when interacting with something
+    Vector3 cameraInteractionPosition;                          // The position when interacting with something
 
     //Internal variables
     Vector3 offset;                                             // The initial offset from the target.
     Vector3 angularVelocity;                                    // The current velocity of the camera.
-    Camera cameraComponent;
+    Camera cameraComponent;                                     // Reference to camera to change ortographic size
     float ortographicSizeToCheck;                               // Holder for currently needed ortographic size.
     Vector3 cameraPositionToCheck;                              // Holder for the currently needed camera position.
+
+    bool cameraOrtographicChangeComplete;
+    bool cameraPositionChangeComplete;
+
+
     bool switchedState;
+    public CameraPositionChangeState currentCameraChangeState;
     TwoStageState movingCameraState;
-    public CameraState testcam;
+    public CameraPositionStates testcam;
     #endregion
 
     #region Camera interface
-    public void SetCameraState(CameraState switchToState)
+    public void SetCameraState(CameraPositionStates switchToState)
     {
-        if (switchToState != currentCameraState)
-        {
-            currentCameraState = switchToState;
-            switchedState = true;
-        }
+        if (currentCameraChangeState == CameraPositionChangeState.Ready)
+            if (switchToState != currentCameraState)
+            {
+                currentCameraState = switchToState;
+                switchedState = true;
+            }
     }
     #endregion
 
@@ -74,7 +81,6 @@ public class IsometricCamera : MonoBehaviour
         cameraStandardFollowPosition = targetPosition.position + offset;
         cameraTargetingPosition = cameraStandardFollowPosition + new Vector3(-9, 21, -25);
         ChangePosition(currentCameraState);
-        SmoothCenterOnTarget();
     }
 
     //Called on a fixed interval
@@ -89,41 +95,66 @@ public class IsometricCamera : MonoBehaviour
         transform.LookAt(targetPosition);
     }
 
-    void ChangePosition(CameraState changeToState)
+
+    //Needs mayor rewriting
+    void ChangePosition(CameraPositionStates cameraPosition)
     {
-        switch (changeToState)
+
+        // Camera positions
+        switch (cameraPosition)
         {
-            case CameraState.Following:
+            case CameraPositionStates.Following:
                 ortographicSizeToCheck = followingOrtographicSize;
                 cameraPositionToCheck = cameraStandardFollowPosition;
                 break;
-            case CameraState.Targeting:
+            case CameraPositionStates.Targeting:
                 ortographicSizeToCheck = targetingOrtographicSize;
                 cameraPositionToCheck = cameraTargetingPosition;
                 break;
-            case CameraState.Sprinting:
+            case CameraPositionStates.Sprinting:
+                // Need to figure out a way to get and set camera position.
                 ortographicSizeToCheck = sprintingOrtographicSize;
                 break;
         }
 
-        switch (movingCameraState)
+        // State of change for the camera
+        switch (currentCameraChangeState)
         {
-            case TwoStageState.Ready:
+            case CameraPositionChangeState.Ready:
                 if (switchedState)
-                    movingCameraState = TwoStageState.Action;
+                {
+                    StartCoroutine(ChangeOrthographicSize(cameraComponent.orthographicSize, ortographicSizeToCheck, timeToChangePosition));
+                    StartCoroutine(MoveCamera(transform.position, cameraPositionToCheck, timeToChangePosition));
+                    currentCameraChangeState = CameraPositionChangeState.Changing;
+                }
                 else
+                {
                     transform.position = Vector3.Lerp(transform.position, cameraPositionToCheck, followSmoothing * Time.deltaTime);
+                    SmoothCenterOnTarget();
+                }
                 break;
-            case TwoStageState.Action:
-                StartCoroutine(ChangeOrthographicSize(cameraComponent.orthographicSize, ortographicSizeToCheck, timeToChangePosition));
-                StartCoroutine(MoveCamera(transform.position, cameraPositionToCheck, timeToChangePosition));
+            case CameraPositionChangeState.Changing:
+                if (cameraOrtographicChangeComplete) // Doesn't check if position is true before switching.
+                    currentCameraChangeState = CameraPositionChangeState.Verifying;
+                break;
+            case CameraPositionChangeState.Verifying:
+                if (Vector3.Distance(transform.position, cameraPositionToCheck) > 5f)
+                    transform.position = Vector3.Lerp(transform.position, cameraPositionToCheck, followSmoothing * 2f * Time.deltaTime);
+                else if (Mathf.Abs(cameraComponent.orthographicSize - ortographicSizeToCheck) > 0.005f)
+                    cameraComponent.orthographicSize = ortographicSizeToCheck;
+                else
+                {
+                    switchedState = false;
+                    currentCameraChangeState = CameraPositionChangeState.Ready;
+                }
                 break;
         }
     }
-
+    #region Courutines for changing camera position
     IEnumerator ChangeOrthographicSize(float currentSize, float changeToSize, float duration)
     {
         float elapsedTime = 0;
+        cameraOrtographicChangeComplete = false;
         Debug.Log("Change ortographic size called");
         while (elapsedTime < duration || cameraComponent.orthographicSize != changeToSize)
         {
@@ -134,26 +165,26 @@ public class IsometricCamera : MonoBehaviour
                 cameraComponent.orthographicSize = changeToSize;
             yield return 0;
         }
-        movingCameraState = ThreeStageCooldown.Ready;
-        switchedState = false;
+        cameraOrtographicChangeComplete = true;
     }
 
     IEnumerator MoveCamera(Vector3 fromPosition, Vector3 toPosition, float duration)
     {
-        //create float to store the time this coroutine is operating
         float elapsedTime = 0;
+        cameraPositionChangeComplete = false;
         Debug.Log("Move camera called");
-        while (elapsedTime < duration)
+        while (elapsedTime < duration || Vector3.Distance(transform.position, toPosition) < 0.05f)
         {
             transform.position = Vector3.Lerp(fromPosition, toPosition, elapsedTime);
             elapsedTime += Time.deltaTime;
-            /*
-            if (Vector3.Distance(transform.position, toPosition) < 5f)
+
+            if (Vector3.Distance(transform.position, toPosition) < 0.1f)
                 transform.position = toPosition;
-                */
+
+            transform.LookAt(targetPosition);                   //This is needed to maintain focus on target
             yield return 0;
         }
-        movingCameraState = ThreeStageCooldown.Ready;
-        switchedState = false;
+        cameraPositionChangeComplete = true;
     }
+    #endregion
 }

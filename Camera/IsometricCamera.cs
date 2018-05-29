@@ -15,6 +15,7 @@ public class IsometricCamera : MonoBehaviour
     [Header("Ortographic views of the camera")]
     [SerializeField]
     CameraPositionStates currentCameraState;                    // The current state of the camera
+    CameraPositionStates previousCameraChangeState;  	        // The previously desired position of the camera
     [SerializeField]
     float followingOrtographicSize;                             // Sets the orthographic size of the camera in this state
     [SerializeField]
@@ -36,7 +37,7 @@ public class IsometricCamera : MonoBehaviour
     [SerializeField]
     Vector3 offset;                                             // The initial offset from the target.
     [SerializeField]
-    float targetingOffset;					                    // The offset from the standard position when targeting
+    Vector3 targetingOffset;					                // The offset from the standard position when targeting
 
     [Header("Deadzone management")]
     [SerializeField]
@@ -49,7 +50,7 @@ public class IsometricCamera : MonoBehaviour
     //Internal variables
     Vector3 angularVelocity;                                    // The current velocity of the camera.
     Camera cameraComponent;                                     // Reference to camera to change ortographic size
-    
+
     float ortographicSizeToCheck;                               // Holder for currently needed ortographic size.
     Vector3 cameraPositionToCheck;                              // Holder for the currently needed camera position.
 
@@ -57,29 +58,28 @@ public class IsometricCamera : MonoBehaviour
     bool cameraPositionChangeComplete;		        	        // Bool to check if the position change is completed
 
     bool switchedState;						                    // Bool to check if state change is ready
-    CameraPositionChangeState currentCameraChangeState;  	    // The current desired position of the camera
-    CameraPositionChangeState previousCameraChangeState;  	    // The previously desired position of the camera
-    
+    CameraPositionChangeState currentCameraChangeState;         // The current desired position of the camera
+
     public CameraPositionStates testcam;
     #endregion
 
     #region Camera interface
     public void SetCameraState(CameraPositionStates switchToState)
     {
-	// Check to make sure it is a new state
+        // Check to make sure it is a new state
         if (currentCameraChangeState == CameraPositionChangeState.Ready && switchToState != currentCameraState)
-		{
- 
-		if(currentCameraState == CameraPositionStates.Sprinting)
-			currentCameraState = previousCameraChangeState;
-		else
-			currentCameraState = switchToState;
+        {
 
-		if(switchToState != CameraPositionStates.Sprinting)
-			previousCameraChangeState = currentCameraState;
+            if (currentCameraState == CameraPositionStates.Sprinting)
+                currentCameraState = previousCameraChangeState;
+            else
+                currentCameraState = switchToState;
 
-                switchedState = true;
-		}
+            if (switchToState != CameraPositionStates.Sprinting)
+                previousCameraChangeState = currentCameraState;
+
+            switchedState = true;
+        }
     }
     #endregion
 
@@ -87,16 +87,16 @@ public class IsometricCamera : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        // Initial camera state.
-        switchedState = false;
-        SetCameraState(CameraPositionStates.Following);
-        previousCameraChangeState = CameraPositionStates.Following;
-
         // Set the camera position offset variables.
         offset = transform.position - targetPosition.position;
         cameraStandardFollowPosition = targetPosition.position + offset;
-        cameraTargetingPosition = cameraStandardFollowPosition * (Vector3.Right * targetingOffset);
+        cameraTargetingPosition = cameraStandardFollowPosition + targetingOffset;
         cameraComponent = GetComponent<Camera>();
+
+        // Initial camera state.
+        switchedState = false;
+        SetCameraPosition(CameraPositionStates.Following);
+        previousCameraChangeState = CameraPositionStates.Following;
     }
 
     // Update is called once per frame
@@ -106,8 +106,8 @@ public class IsometricCamera : MonoBehaviour
 
         //Update camera positions
         cameraStandardFollowPosition = targetPosition.position + offset;
-        cameraTargetingPosition = cameraStandardFollowPosition * (Vector3.Right * targetingOffset);
-	
+        cameraTargetingPosition = cameraStandardFollowPosition + targetingOffset;
+
         // Move the camera
         ManageCameraPosition();
     }
@@ -128,19 +128,17 @@ public class IsometricCamera : MonoBehaviour
             case CameraPositionChangeState.Ready:
                 if (switchedState)
                 {
-		    SetCameraPosition();
+                    SetCameraPosition();
                     StartCoroutine(ChangeOrthographicSize(cameraComponent.orthographicSize, ortographicSizeToCheck, timeToChangePosition));
                     StartCoroutine(MoveCamera(transform.position, cameraPositionToCheck, timeToChangePosition));
                     currentCameraChangeState = CameraPositionChangeState.Changing;
                 }
                 else
                 {
-		    if (useDeadzone)
-			ManageCameraDeadzonePosition();
-		    else
-		    {
-			MoveCamera();
-		    }
+                    if (useDeadzone)
+                        ManageCameraDeadzonePosition();
+                    else
+                        MoveCamera();
                 }
                 break;
             case CameraPositionChangeState.Changing:
@@ -163,30 +161,29 @@ public class IsometricCamera : MonoBehaviour
 
     void ManageCameraDeadzonePosition()
     {
-        // Get the current viewport of the camera (might use screen.width/height)
-        float cameraHeight = 2f * cameraComponent.orthographicSize
-        float cameraWidth = cameraHeight  * cameraComponent.orthographicSize.aspect;
-
+        SetCameraPosition(CameraPositionStates.Deadzone);
         // Set deadzone x,y
-        float deadzoneAxisX = (cameraWidth - deadzoneWidth) / 2;
-        float deadzoneAxisY  = (cameraHeight - deadzoneHeight) / 2;
+        float x = (Screen.width - deadzoneWidth) * 0.5f;
+        float y = (Screen.height - deadzoneHeight) * 0.5f;
 
         // Create deadzone rectangle
-        Rect deadzoneArea = new Rect(deadzoneAxisX, deadzoneAxisY,deadzoneWidth,deadzoneHeight);  
-	
+        Rect deadzoneArea = new Rect(x, y, deadzoneWidth, deadzoneHeight);
+
         // Get target Worldspace to UI
         Vector3 targetPositionOnScreen = cameraComponent.WorldToScreenPoint(targetPosition.position);
 
         // Check if target is outside deadzone
-        if(!deadzone.Area.contains(targetPositionOnScreen))
+        if (!deadzoneArea.Contains(targetPositionOnScreen))
         {
-            MoveCamera();
+            Debug.Log("Moving outside of deadzone");
+            SetCameraState(CameraPositionStates.Following);
         }
-	
+
     }
 
     void MoveCamera()
     {
+        SetCameraPosition();
         transform.position = Vector3.Lerp(transform.position, cameraPositionToCheck, followSmoothing * Time.deltaTime);
         SmoothCenterOnTarget();
     }
@@ -201,6 +198,10 @@ public class IsometricCamera : MonoBehaviour
     {
         switch (currentCameraState)
         {
+            case CameraPositionStates.Deadzone:
+                SetOrtographicSize(currentCameraState);
+                SetCameraPosition(currentCameraState);
+                break;
             case CameraPositionStates.Following:
                 SetOrtographicSize(currentCameraState);
                 SetCameraPosition(currentCameraState);
@@ -222,8 +223,11 @@ public class IsometricCamera : MonoBehaviour
 
     void SetOrtographicSize(CameraPositionStates ortographicSize)
     {
- 	switch (ortographicSize)
+        switch (ortographicSize)
         {
+            case CameraPositionStates.Deadzone:
+                ortographicSizeToCheck = followingOrtographicSize;
+                break;
             case CameraPositionStates.Following:
                 ortographicSizeToCheck = followingOrtographicSize;
                 break;
@@ -244,6 +248,9 @@ public class IsometricCamera : MonoBehaviour
         // Camera positions
         switch (cameraPosition)
         {
+            case CameraPositionStates.Deadzone:
+                cameraPositionToCheck = cameraStandardFollowPosition;
+                break;
             case CameraPositionStates.Following:
                 cameraPositionToCheck = cameraStandardFollowPosition;
                 break;
@@ -251,7 +258,7 @@ public class IsometricCamera : MonoBehaviour
                 cameraPositionToCheck = cameraTargetingPosition;
                 break;
             case CameraPositionStates.Sprinting:
-		cameraPositionToCheck = cameraStandardFollowPosition;
+                cameraPositionToCheck = cameraStandardFollowPosition;
                 break;
             case CameraPositionStates.Interacting:
                 cameraPositionToCheck = cameraTargetingPosition;
@@ -267,7 +274,7 @@ public class IsometricCamera : MonoBehaviour
         Debug.Log("Change ortographic size called");
         while (elapsedTime < duration || cameraComponent.orthographicSize != changeToSize)
         {
-            cameraComponent.orthographicSize = Mathf.Lerp(currentSize, changeToSize, (elapsedTime/duration));
+            cameraComponent.orthographicSize = Mathf.Lerp(currentSize, changeToSize, (elapsedTime / duration));
             elapsedTime += Time.deltaTime;
 
             if (Mathf.Abs(cameraComponent.orthographicSize - changeToSize) < 0.005f)
@@ -283,15 +290,15 @@ public class IsometricCamera : MonoBehaviour
         float elapsedTime = 0;
         cameraPositionChangeComplete = false;
         Debug.Log("Move camera called");
-        while (elapsedTime < duration || Vector3.Distance(transform.position, toPosition) < 0.05f)
+        while (elapsedTime < duration || Vector3.Distance(transform.position, toPosition) > 0.05f)
         {
-            transform.position = Vector3.Lerp(fromPosition, toPosition, (elapsedTime/duration));
+            transform.position = Vector3.Lerp(fromPosition, toPosition, (elapsedTime / duration));
             elapsedTime += Time.deltaTime;
 
             if (Vector3.Distance(transform.position, toPosition) < 0.1f)
                 transform.position = toPosition;
 
-            transform.LookAt(targetPosition);                   //This is needed to maintain focus on target
+            transform.LookAt(targetPosition);
             yield return 0;
         }
         cameraPositionChangeComplete = true;

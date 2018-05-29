@@ -49,6 +49,7 @@
 
     public enum CameraPositionStates
     {
+        Deadzone,
         Following,
         Targeting,
         Sprinting,

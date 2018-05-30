@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlaceUIOnObject : MonoBehaviour
 {
 
-    public void ToggleTargetUI(bool targeting, GameObject objectPosition)
+    public void ToggleTargetUI(bool targeting, GameObject objectPosition = null)
     {
         if (targeting)
         {
@@ -15,6 +15,7 @@ public class PlaceUIOnObject : MonoBehaviour
         else
             objectToDisplay.SetActive(false);
     }
+
     #region Variables
     public Canvas completeViewportCanvas;           // This needs to be the complete screen
     public GameObject objectToDisplay;

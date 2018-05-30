@@ -6,11 +6,16 @@ using UnityEngine;
 public class ToggleTargetOnEnemy : MonoBehaviour
 {
     #region Variables
+    [Header("Targeting radius and general settings")]
     public float radiusToCheck;                     // The radius to check for targets
-    public float distanceToRemoveTargeting;         // If object is too far away, remove targeting
-    public GameObject targetCanvas;                 // Where to find script that controls target circle
     public string tagToTarget;                      // The tag on which to search for targets
     public LayerMask layerToCheck;                  // The layer in to check for targets
+    public float distanceToRemoveTargeting;         // If object is too far away, remove targeting
+
+    public GameObject targetCanvas;                 // Where to find script that controls target circle
+
+    [Header("Automatic re-target on death")]
+    public bool retargetOnTargetDeath;
 
     Transform nearestTarget;                        // The transform position of the nearest target
     float closestDistanceSqr;                       // The closest distance to the target
@@ -38,19 +43,17 @@ public class ToggleTargetOnEnemy : MonoBehaviour
         {
             case TargetState.NoTarget:
                 if (Input.GetButtonDown(Inputs.TARGET))
-                {
                     FindAndTargetClosestObjectByLayerAndTag();
-                }
                 break;
             case TargetState.Targeting:
                 if (Vector3.Distance(nearestTarget.position, transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
                     RemoveTargeting();
-                if (Input.GetButtonDown(Inputs.RETARGET))
+                if (retargetOnTargetDeath /*&& and check for target health*/)
                     FindAndTargetClosestObjectByLayerAndTag();
                 break;
         }
     }
-
+    #region Visual manager
     void FindAndTargetClosestObjectByLayerAndTag()
     {
         //Get objects in radius by layer
@@ -80,7 +83,7 @@ public class ToggleTargetOnEnemy : MonoBehaviour
             }
         }
 
-        // If a target is found, set targeting as true
+        // If a target is found, set targeting as true and move state to targeting
         if (nearestTarget != null)
         {
             currentlyTargeting = true;
@@ -93,7 +96,6 @@ public class ToggleTargetOnEnemy : MonoBehaviour
     void RemoveTargeting()
     {
         currentlyTargeting = false;
-        nearestTarget = null;
         movementScript.ToggleTargeting(currentlyTargeting, nearestTarget);
         stateOfTargeting = TargetState.NoTarget;
         ToggleTargetVisual();
@@ -101,13 +103,17 @@ public class ToggleTargetOnEnemy : MonoBehaviour
 
     void ToggleTargetVisual()
     {
+        // Create a empty gameobject holder
         GameObject position;
 
+        // If we there currently is a target, pass it to the empty holder
         if (nearestTarget != null)
             position = nearestTarget.gameObject;
         else
             position = null;
 
+        //Pass the current status and the gameobject holder
         targetCanvas.GetComponent<PlaceUIOnObject>().ToggleTargetUI(currentlyTargeting, position);
     }
+    #endregion
 }

@@ -158,10 +158,10 @@ public class IsometricCamera : MonoBehaviour
                 break;
         }
     }
-
+    #region Deadzone management
     void ManageCameraDeadzonePosition()
     {
-        SetCameraPosition(CameraPositionStates.Deadzone);
+        //  SetCameraPosition(CameraPositionStates.Deadzone);
         // Set deadzone x,y
         float x = (Screen.width - deadzoneWidth) * 0.5f;
         float y = (Screen.height - deadzoneHeight) * 0.5f;
@@ -180,6 +180,7 @@ public class IsometricCamera : MonoBehaviour
         }
 
     }
+    #endregion
 
     void MoveCamera()
     {
@@ -198,10 +199,6 @@ public class IsometricCamera : MonoBehaviour
     {
         switch (currentCameraState)
         {
-            case CameraPositionStates.Deadzone:
-                SetOrtographicSize(currentCameraState);
-                SetCameraPosition(currentCameraState);
-                break;
             case CameraPositionStates.Following:
                 SetOrtographicSize(currentCameraState);
                 SetCameraPosition(currentCameraState);
@@ -225,9 +222,6 @@ public class IsometricCamera : MonoBehaviour
     {
         switch (ortographicSize)
         {
-            case CameraPositionStates.Deadzone:
-                ortographicSizeToCheck = followingOrtographicSize;
-                break;
             case CameraPositionStates.Following:
                 ortographicSizeToCheck = followingOrtographicSize;
                 break;
@@ -248,9 +242,6 @@ public class IsometricCamera : MonoBehaviour
         // Camera positions
         switch (cameraPosition)
         {
-            case CameraPositionStates.Deadzone:
-                cameraPositionToCheck = cameraStandardFollowPosition;
-                break;
             case CameraPositionStates.Following:
                 cameraPositionToCheck = cameraStandardFollowPosition;
                 break;

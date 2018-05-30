@@ -5,9 +5,9 @@ using UnityEngine;
 public class PlaceUIOnObject : MonoBehaviour
 {
 
-    public void ToggleTargetUI(bool targeting, GameObject objectPosition = null)
+    public void ToggleTargetUI(bool placeUIonGameObject, GameObject objectPosition = null)
     {
-        if (targeting)
+        if (placeUIonGameObject)
         {
             positionOfTarget = objectPosition;
             objectToDisplay.SetActive(true);
@@ -17,6 +17,7 @@ public class PlaceUIOnObject : MonoBehaviour
     }
 
     #region Variables
+    [Header("Setup for canvas, UI element to display and camera")]
     public Canvas completeViewportCanvas;           // This needs to be the complete screen
     public GameObject objectToDisplay;
     public Camera cameraToShowTargetFrom;

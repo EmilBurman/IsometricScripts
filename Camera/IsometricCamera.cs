@@ -88,7 +88,7 @@ public class IsometricCamera : MonoBehaviour
     void Start()
     {
         // Set the camera position offset variables.
-        offset = transform.position - targetPosition.position;
+        // offset = transform.position - targetPosition.position;
         cameraStandardFollowPosition = targetPosition.position + offset;
         cameraTargetingPosition = cameraStandardFollowPosition + targetingOffset;
         cameraComponent = GetComponent<Camera>();

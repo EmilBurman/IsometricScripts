@@ -8,7 +8,7 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
     [Header("UI Image setup")]
     public GameObject pointOfInterestUIElement;
     public GameObject informationPromptUIElement;
-    public GameObject interactiopnPromptUIElement;
+    public GameObject interactionPromptUIElement;
 
     [Header("Minimum distance for each UI stage")]
     public float minDistPointOfInterest;
@@ -24,6 +24,15 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        /* This should check if there are three scripts attached to this gameobject
+         * Point of interest
+         * Information prompt
+         * interaction prompt
+         * 
+         * If all three are here, a three staged rocked should occur, otherwise
+         * They should be displayed as they are attached.
+         * For instance the point of interest UI element might not be necessary
+         */
 
     }
 

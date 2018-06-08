@@ -15,7 +15,7 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
     public float minDistInformationPrompt;
     public float minDistInteractionPrompt;
 
-    Transform entityPosition;
+    List<Transform> playersInAreaList;
     float distanceToEntity;
     Transform placementPositionForUI;
     #endregion
@@ -24,6 +24,8 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        playersInAreaList = new List<Transform>();
+
         /* This should check if there are three scripts attached to this gameobject
          * Point of interest
          * Information prompt
@@ -57,8 +59,10 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
     {
         if (entity.CompareTag(Tags.PLAYER))
         {
-            if (playerPosition = null)
-                playerPosition = entity.transform;
+            playersInAreaList.Add(entity.transform);
+
+            if(CheckIfClosestPlayer())
+                ShowPointOfInterestPrompt();
 
             /* RAYCAST TO PLAYER POSITION
             * Raycast from parentObject towards player
@@ -78,15 +82,19 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
 
     private void OnTriggerStay(Collider entity)
     {
-        if (playerPosition != null)
+        if (entity.CompareTag(Tags.PLAYER))
         {
-            Debug.Log("Holys hit its the player");
+            //Debug.Log("Holy shit it's a player");
         }
+    }
+    bool CheckIfClosestPlayer()
+    {
+        return true;
     }
 
     void ShowPointOfInterestPrompt()
     {
-
+        Debug.Log("SHOWING POI");
     }
 
     void ShowObjectInformationPrompt()
@@ -101,10 +109,11 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
 
     void OnTriggerExit(Collider entity)
     {
-        if (playerPosition = entity.transform)
+        if (entity.CompareTag(Tags.PLAYER))
         {
-            playerPosition = null;
-            Debug.Log("Player exited area.");
+            playersInAreaList.Remove(entity.transform);
+            Debug.Log("A player exited the area.");
+            Debug.Log(playersInAreaList.Count);
         }
     }
 }

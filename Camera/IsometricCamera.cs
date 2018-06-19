@@ -128,7 +128,7 @@ public class IsometricCamera : MonoBehaviour
             case CameraPositionChangeState.Ready:
                 if (switchedState)
                 {
-                    SetCameraPosition();
+                    ManageCameraPositionAndOrtographicSize();
                     StartCoroutine(ChangeOrthographicSize(cameraComponent.orthographicSize, ortographicSizeToCheck, timeToChangePosition));
                     StartCoroutine(MoveCamera(transform.position, cameraPositionToCheck, timeToChangePosition));
                     currentCameraChangeState = CameraPositionChangeState.Changing;
@@ -161,7 +161,7 @@ public class IsometricCamera : MonoBehaviour
     #region Deadzone management
     void ManageCameraDeadzonePosition()
     {
-        //  SetCameraPosition(CameraPositionStates.Deadzone);
+        //  ManageCameraPositionAndOrtographicSize(CameraPositionStates.Deadzone);
         // Set deadzone x,y
         float x = (Screen.width - deadzoneWidth) * 0.5f;
         float y = (Screen.height - deadzoneHeight) * 0.5f;
@@ -184,18 +184,18 @@ public class IsometricCamera : MonoBehaviour
 
     void MoveCamera()
     {
-        SetCameraPosition();
+        ManageCameraPositionAndOrtographicSize();
         transform.position = Vector3.Lerp(transform.position, cameraPositionToCheck, followSmoothing * Time.deltaTime);
-        SmoothCenterOnTarget();
+        SmoothLookAtTarget();
     }
 
-    void SmoothCenterOnTarget()
+    void SmoothLookAtTarget()
     {
         transform.LookAt(targetPosition);
     }
 
     #region CameraPosition and ortographic size management
-    void SetCameraPosition()
+    void ManageCameraPositionAndOrtographicSize()
     {
         switch (currentCameraState)
         {

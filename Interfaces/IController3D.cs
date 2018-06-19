@@ -11,4 +11,5 @@ public interface IController3D
     bool Dodge();
     bool Sprint();
     bool Attack();
+    bool Interact();
 }

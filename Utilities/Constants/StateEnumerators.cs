@@ -67,4 +67,13 @@
         NoTarget,
         Targeting
     }
+
+    public enum WorldUiState
+    {
+        NoUi,
+        Poi,
+        InfoPrompt,
+        InteractionPrompt,
+        DeactivateUi
+    }
 }

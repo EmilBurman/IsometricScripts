@@ -1,31 +1,37 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using StateEnumerators;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ThreeStageWorldUIPlacement : MonoBehaviour
 {
     #region Variables
     [Header("UI Image setup")]
-    public GameObject pointOfInterestUIElement;
-    public GameObject informationPromptUIElement;
-    public GameObject interactionPromptUIElement;
+    public Image pointOfInterestUIElement;
+    public Image informationPromptUIElement;
+    public Image interactionPromptUIElement;
+    Color alphaMax;
+    Color alphaMin;
 
     [Header("Minimum distance for each UI stage")]
     public float minDistPointOfInterest;
     public float minDistInformationPrompt;
     public float minDistInteractionPrompt;
 
-    List<Transform> playersInAreaList;
+    // Internal variables
+    Transform localPlayer;
     float distanceToEntity;
     Transform placementPositionForUI;
+    WorldUiState uiState;
     #endregion
 
     #region Initalization
-    // Use this for initialization
     void Start()
     {
-        playersInAreaList = new List<Transform>();
-
+        alphaMax.a = 1f;
+        alphaMin.a = 0f;
+        placementPositionForUI = this.transform;
+        InstantiateUiElements();
+        RemoveUI();
         /* This should check if there are three scripts attached to this gameobject
          * Point of interest
          * Information prompt
@@ -35,7 +41,6 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
          * They should be displayed as they are attached.
          * For instance the point of interest UI element might not be necessary
          */
-
     }
 
     void Awake()
@@ -53,67 +58,151 @@ public class ThreeStageWorldUIPlacement : MonoBehaviour
          *
          */
     }
+
+    void Update()
+    {
+        if (localPlayer != null)
+            ManageUiState();
+    }
     #endregion
 
+    #region Unity trigger functions
     void OnTriggerEnter(Collider entity)
     {
         if (entity.CompareTag(Tags.PLAYER))
         {
-            playersInAreaList.Add(entity.transform);
-
-            if(CheckIfClosestPlayer())
-                ShowPointOfInterestPrompt();
-
-            /* RAYCAST TO PLAYER POSITION
-            * Raycast from parentObject towards player
-            * if no terrain obstacles and if within MIN RANGE
-            * place ShowPointOfInterestPrompt
-            * if within MIN RANGE for ShowObjectInformationPrompt
-            * ShowObjectInformationPrompt
-            * if within MIN RANGE
-            * ShowInteractionPrompt
-            */
-
-
-
-            Debug.Log("Player entered area.");
+            if (CheckIfLocalPlayer())
+                SetLocalPlayer(entity);
+            Debug.Log("Local player entered area.");
         }
-    }
-
-    private void OnTriggerStay(Collider entity)
-    {
-        if (entity.CompareTag(Tags.PLAYER))
-        {
-            //Debug.Log("Holy shit it's a player");
-        }
-    }
-    bool CheckIfClosestPlayer()
-    {
-        return true;
-    }
-
-    void ShowPointOfInterestPrompt()
-    {
-        Debug.Log("SHOWING POI");
-    }
-
-    void ShowObjectInformationPrompt()
-    {
-
-    }
-
-    void ShowInteractionPrompt()
-    {
-
     }
 
     void OnTriggerExit(Collider entity)
     {
-        if (entity.CompareTag(Tags.PLAYER))
+        if (entity.transform == localPlayer)
         {
-            playersInAreaList.Remove(entity.transform);
-            Debug.Log("A player exited the area.");
-            Debug.Log(playersInAreaList.Count);
+            localPlayer = null;
+            Debug.Log("Local player exited the area.");
         }
     }
+    #endregion
+
+    private void ManageUiState()
+    {
+        //Debug.Log(DistanceToPlayer());
+        switch (uiState)
+        {
+            case WorldUiState.NoUi:
+                if (DistanceToPlayer() < minDistPointOfInterest)
+                {
+                    ShowPointOfInterestPrompt();
+                    uiState = WorldUiState.Poi;
+                }
+                break;
+            case WorldUiState.Poi:
+                if (DistanceToPlayer() < minDistInformationPrompt)
+                {
+                    ShowObjectInformationPrompt();
+                    uiState = WorldUiState.InfoPrompt;
+                }
+                else if (DistanceToPlayer() > minDistPointOfInterest)
+                {
+                    RemoveUI();
+                    uiState = WorldUiState.NoUi;
+                }
+                break;
+            case WorldUiState.InfoPrompt:
+                if (DistanceToPlayer() < minDistInteractionPrompt)
+                {
+                    ShowInteractionPrompt();
+                    uiState = WorldUiState.InteractionPrompt;
+                }
+                else if (DistanceToPlayer() > minDistInformationPrompt)
+                {
+                    ShowPointOfInterestPrompt();
+                    uiState = WorldUiState.Poi;
+                }
+                break;
+            case WorldUiState.InteractionPrompt:
+                /*
+                if (localPlayer.GetComponent<IController3D>().Interact())
+                {
+                    RemoveUI();
+                    uiState = WorldUiState.DeactivateUi;
+                }
+                */
+                if (DistanceToPlayer() > minDistInteractionPrompt)
+                {
+                    ShowObjectInformationPrompt();
+                    uiState = WorldUiState.InfoPrompt;
+                }
+                break;
+            case WorldUiState.DeactivateUi:
+                //this.gameObject(deactive);
+                break;
+        }
+    }
+
+    bool CheckIfLocalPlayer()
+    {
+        return true;
+    }
+
+    void SetLocalPlayer(Collider entity)
+    {
+        localPlayer = entity.transform;
+    }
+
+    float DistanceToPlayer()
+    {
+        return Vector3.Distance(placementPositionForUI.position, localPlayer.position);
+    }
+
+    #region UiStateFunctions
+    void ShowPointOfInterestPrompt()
+    {
+        pointOfInterestUIElement.color = alphaMax;
+        Debug.Log("Showing Poi");
+    }
+
+
+    void ShowObjectInformationPrompt()
+    {
+        informationPromptUIElement.color = alphaMax;
+        Debug.Log("Showing InformationPrompt");
+    }
+
+    void ShowInteractionPrompt()
+    {
+        interactionPromptUIElement.color = alphaMax;
+        Debug.Log("Showing InteractionPrompt");
+    }
+
+    void RemoveUI()
+    {
+        pointOfInterestUIElement.color = alphaMin;
+        informationPromptUIElement.color = alphaMin;
+        interactionPromptUIElement.color = alphaMin;
+        Debug.Log("Removing Ui");
+    }
+
+    void InstantiateUiElements()
+    {
+        pointOfInterestUIElement.transform.position = this.gameObject.transform.position;
+        informationPromptUIElement.transform.position = this.gameObject.transform.position;
+        interactionPromptUIElement.transform.position = this.gameObject.transform.position;
+    }
+
+    void RotateUI()
+    {
+        /*
+        * Raycast towards player
+        * raycast towards camera
+        * get angle
+        * if angle within minAngle and maxAngle
+        * rotate ui on x axis, freeze y axis
+        * else freeze ui ortation
+        */
+    }
+    #endregion
 }

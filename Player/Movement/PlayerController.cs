@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour, IController3D {
 
-    //Start interface
+    #region IController3D interface
     public bool Attack()
     {
         return Input.GetButtonDown(Inputs.ATTACK);
@@ -40,7 +40,12 @@ public class PlayerController : MonoBehaviour, IController3D {
     {
         return Input.GetButton(Inputs.SPRINT);
     }
-    //End interface
+
+    public bool Interact()
+    {
+        return Input.GetButtonUp(Inputs.JUMP);
+    }
+    #endregion
 
     // Use this for initialization
     void Start () {

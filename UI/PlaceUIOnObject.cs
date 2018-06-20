@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 namespace CloudsOfAvarice
 {
     public class PlaceUIOnObject : MonoBehaviour
@@ -24,14 +25,14 @@ namespace CloudsOfAvarice
         public Camera cameraToShowTargetFrom;
 
         //Internal variables
-        RectTransform canvas;
+        RectTransform completeScreenRectTransform;
         GameObject positionOfTarget;
         #endregion
 
         // Use this for initialization
         void Start()
         {
-            canvas = completeViewportCanvas.GetComponent<RectTransform>();
+            completeScreenRectTransform = completeViewportCanvas.GetComponent<RectTransform>();
             objectToDisplay.SetActive(false);
         }
 
@@ -50,8 +51,8 @@ namespace CloudsOfAvarice
 
             //Calculate position considering our percentage, using our canvas size
             //So if canvas size is (1100,500), and percentage is (0.5,0.5), current value will be (550,250)
-            positionOnCanvasFromWorldSpace.x *= canvas.sizeDelta.x;
-            positionOnCanvasFromWorldSpace.y *= canvas.sizeDelta.y;
+            positionOnCanvasFromWorldSpace.x *= completeScreenRectTransform.sizeDelta.x;
+            positionOnCanvasFromWorldSpace.y *= completeScreenRectTransform.sizeDelta.y;
 
             return positionOnCanvasFromWorldSpace;
         }

@@ -6,7 +6,7 @@ namespace CloudsOfAvarice
     public class PlaceUIOnObjectWhenTargeting : MonoBehaviour
     {
         #region Variables
-        [Header("Targeting radius and general settings")]
+        [Header("Targeting radius for targets and general settings")]
         public float radiusToCheck;                     // The radius to check for targets
         public string tagToTarget;                      // The tag on which to search for targets
         public LayerMask layerToCheck;                  // The layer in to check for targets
@@ -23,12 +23,11 @@ namespace CloudsOfAvarice
         //Internal variables
         RectTransform completeScreenRectTransform;
         GameObject localEntity;
-        GameObject entityToTarget;
-        Transform nearestTarget;                        // The transform position of the nearest target
+        Transform nearestEntityToTarget;                // The transform position of the nearest target
 
         bool currentlyTargeting;                        // Bool for keeping track of targeting is active
 
-        IMovement movementScript;                       // Reference for the movement script to control turning
+        IMovement movementScript;                       // Reference for the movement script to control turning for the local entity.
         TargetState stateOfTargeting;                   // The state of targeting
         #endregion
 
@@ -47,7 +46,7 @@ namespace CloudsOfAvarice
             movementScript = localEntity.GetComponent<IMovement>();
 
             currentlyTargeting = false;
-            nearestTarget = null;
+            nearestEntityToTarget = null;
         }
 
         void FindAndSetLocalPlayer()
@@ -57,11 +56,8 @@ namespace CloudsOfAvarice
         #endregion
 
         #region Runetime placement
-        // Update is called once per frame
-        void Update()
+        void FixedUpdate()
         {
-            PlaceUIOnTarget();
-
             switch (stateOfTargeting)
             {
                 case TargetState.NoTarget:
@@ -69,7 +65,8 @@ namespace CloudsOfAvarice
                         FindAndTargetClosestObjectByLayerAndTag();
                     break;
                 case TargetState.Targeting:
-                    if (Vector3.Distance(nearestTarget.position, localEntity.transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
+                    PlaceUIOnTarget();
+                    if (Vector3.Distance(nearestEntityToTarget.position, localEntity.transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
                         RemoveTargeting();
                     if (retargetOnTargetDeath /*&& and check for target health*/)
                         FindAndTargetClosestObjectByLayerAndTag();
@@ -79,16 +76,16 @@ namespace CloudsOfAvarice
 
         void PlaceUIOnTarget()
         {
-            if (entityToTarget != null)
-                objectToDisplay.transform.position = WorldToCanvasPosition(entityToTarget.transform.position);
+            if (nearestEntityToTarget != null)
+                objectToDisplay.transform.position = WorldToCanvasPosition(nearestEntityToTarget.position);
         }
         #endregion
 
         #region Visual management
         void FindAndTargetClosestObjectByLayerAndTag()
         {
-            //Get objects in radius by layer
-            Collider[] objects = Physics.OverlapSphere(localEntity.transform.position, radiusToCheck, layerToCheck);
+            //Get nearbyPotentialTargets in radius by layer
+            Collider[] nearbyPotentialTargets = Physics.OverlapSphere(localEntity.transform.position, radiusToCheck, layerToCheck);
 
             // Set max distance
             float closestDistanceSqr = radiusToCheck;
@@ -96,7 +93,7 @@ namespace CloudsOfAvarice
             // Set the current position
             Vector3 currentPosition = localEntity.transform.position;
 
-            foreach (Collider potentialTarget in objects)
+            foreach (Collider potentialTarget in nearbyPotentialTargets)
             {
                 if (potentialTarget.tag == Tags.ENEMY)
                 {
@@ -109,38 +106,33 @@ namespace CloudsOfAvarice
                     if (dSqrToTarget < closestDistanceSqr)
                     {
                         closestDistanceSqr = dSqrToTarget;
-                        nearestTarget = potentialTarget.transform;
+                        nearestEntityToTarget = potentialTarget.transform;
                     }
                 }
             }
 
             // If a target is found, set targeting as true and move state to targeting
-            if (nearestTarget != null)
+            if (nearestEntityToTarget != null)
             {
                 currentlyTargeting = true;
-                movementScript.ToggleTargeting(currentlyTargeting, nearestTarget);
-                ToggleTargetVisual();
                 stateOfTargeting = TargetState.Targeting;
+                PlaceUIOnTarget();
+                ToggleTargetVisual();
             }
         }
 
         void RemoveTargeting()
         {
             currentlyTargeting = false;
-            movementScript.ToggleTargeting(currentlyTargeting, nearestTarget);
+            nearestEntityToTarget = null;
             stateOfTargeting = TargetState.NoTarget;
             ToggleTargetVisual();
         }
 
         void ToggleTargetVisual()
         {
-            if (currentlyTargeting)
-            {
-                entityToTarget = nearestTarget.gameObject;
-                objectToDisplay.SetActive(true);
-            }
-            else
-                objectToDisplay.SetActive(false);
+            movementScript.ToggleTargeting(currentlyTargeting, nearestEntityToTarget);
+            objectToDisplay.SetActive(currentlyTargeting);
         }
 
         //Translate the target position from worldspace to canvas space

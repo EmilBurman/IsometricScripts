@@ -76,6 +76,7 @@ namespace CloudsOfAvarice
                 objectToDisplay.transform.position = WorldToCanvasPosition(nearestEntityToTarget.position);
         }
 
+        //TODO Find a more performant solution
         void CheckTargetEntityStatus()
         {
             if (nearestEntityToTarget != null)

@@ -16,37 +16,37 @@ namespace CloudsOfAvarice
         public bool retargetOnTargetDeath;
 
         [Header("Setup for canvas, UI element to display and camera")]
-        public Canvas completeViewportCanvas;           // This needs to be the complete screen
-        public GameObject objectToDisplay;
-        public Camera cameraToShowTargetFrom;
+        public Canvas completeViewportCanvas;           // This needs to be the complete screen.
+        public GameObject objectToDisplay;              // Which gameobject to display when targeting.
+        public Camera cameraToShowTargetFrom;           // Which camera to get the viewport from. 
 
         //Internal variables
-        RectTransform completeScreenRectTransform;
+        RectTransform completeScreenRectTransform;      // The entire screen viewport.
+        Transform nearestEntityToTarget;                // The transform position of the nearest target.
+
+        bool currentlyTargeting;                        // Bool for keeping track of targeting is active.
+
+        // Which player to track.
         GameObject localEntity;
-        Transform nearestEntityToTarget;                // The transform position of the nearest target
-
-        bool currentlyTargeting;                        // Bool for keeping track of targeting is active
-
-        IMovement movementScript;                       // Reference for the movement script to control turning for the local entity.
-        TargetState stateOfTargeting;                   // The state of targeting
+        IMovement movementScript;                      
         #endregion
 
         #region Inital setup
         // Use this for initialization
         void Start()
         {
-            FindAndSetLocalPlayer();
-            completeScreenRectTransform = completeViewportCanvas.GetComponent<RectTransform>();
             objectToDisplay.SetActive(false);
+            currentlyTargeting = false;
+            nearestEntityToTarget = null;
+
+            completeScreenRectTransform = completeViewportCanvas.GetComponent<RectTransform>();
 
             if (tagToTarget == "")
                 tagToTarget = Tags.ENEMY;
 
-            stateOfTargeting = TargetState.NoTarget;
+            //If player movement will be decouple, remove this. Also decouple input referenses in fixed update
+            FindAndSetLocalPlayer();
             movementScript = localEntity.GetComponent<IMovement>();
-
-            currentlyTargeting = false;
-            nearestEntityToTarget = null;
         }
 
         void FindAndSetLocalPlayer()
@@ -58,23 +58,22 @@ namespace CloudsOfAvarice
         #region Runetime placement
         void FixedUpdate()
         {
-            switch (stateOfTargeting)
+            if (currentlyTargeting)
             {
-                case TargetState.NoTarget:
-                    if (Input.GetButtonDown(Inputs.TARGET))
-                        FindAndTargetClosestObjectByLayerAndTag();
-                    break;
-                case TargetState.Targeting:
-                    PlaceUIOnTarget();
-                    if (Vector3.Distance(nearestEntityToTarget.position, localEntity.transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
-                        RemoveTargeting();
-                    if (retargetOnTargetDeath /*&& and check for target health*/)
-                        FindAndTargetClosestObjectByLayerAndTag();
-                    break;
+                PlaceAndMaintainUIOnTarget();
+                if (Vector3.Distance(nearestEntityToTarget.position, localEntity.transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
+                    RemoveTargeting();
+                if (retargetOnTargetDeath /*&& and check for target health*/)
+                    FindAndTargetClosestObjectByLayerAndTag();
+            }
+            else
+            {
+                if (Input.GetButtonDown(Inputs.TARGET))
+                    FindAndTargetClosestObjectByLayerAndTag();
             }
         }
 
-        void PlaceUIOnTarget()
+        void PlaceAndMaintainUIOnTarget()
         {
             if (nearestEntityToTarget != null)
                 objectToDisplay.transform.position = WorldToCanvasPosition(nearestEntityToTarget.position);
@@ -113,33 +112,39 @@ namespace CloudsOfAvarice
 
             // If a target is found, set targeting as true and move state to targeting
             if (nearestEntityToTarget != null)
-            {
-                currentlyTargeting = true;
-                stateOfTargeting = TargetState.Targeting;
-                PlaceUIOnTarget();
-                ToggleTargetVisual();
-            }
+                ApplyTargeting();
+        }
+
+        void ApplyTargeting()
+        {
+            currentlyTargeting = true;
+            PlaceAndMaintainUIOnTarget();
+            ToggleTargetVisual();
         }
 
         void RemoveTargeting()
         {
             currentlyTargeting = false;
-            nearestEntityToTarget = null;
-            stateOfTargeting = TargetState.NoTarget;
             ToggleTargetVisual();
         }
 
         void ToggleTargetVisual()
         {
+            // Clear nearest entity if not targeting is active
+            if(!currentlyTargeting)
+                nearestEntityToTarget = null;
+
+            // Call movement script to set lookAt() true/false and target 
             movementScript.ToggleTargeting(currentlyTargeting, nearestEntityToTarget);
+
+            // Set targeting object true/false
             objectToDisplay.SetActive(currentlyTargeting);
         }
 
         //Translate the target position from worldspace to canvas space
         Vector3 WorldToCanvasPosition(Vector3 positionOfTarget)
         {
-            //Vector position (percentage from 0 to 1) considering camera size.
-            //For example (0,0) is lower left, middle is (0.5,0.5)
+            //Get worldspace(vector3) from camera and translate to canvas (vector2)
             Vector2 positionOnCanvasFromWorldSpace = cameraToShowTargetFrom.WorldToViewportPoint(positionOfTarget);
 
             //Calculate position considering our percentage, using our canvas size

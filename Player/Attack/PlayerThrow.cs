@@ -14,8 +14,6 @@ public class PlayerThrow : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        bool manualAim = Input.GetButton(Inputs.AIM);
-        bool attack = Input.GetButton(Inputs.ATTACK);
 
     }
 }

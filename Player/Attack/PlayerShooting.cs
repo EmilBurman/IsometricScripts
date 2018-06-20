@@ -42,7 +42,7 @@ namespace CompleteProject
 
 #if !MOBILE_INPUT
             // If the Fire1 button is being press and it's time to fire...
-            if (Input.GetButton(Inputs.ATTACK) && timer >= timeBetweenBullets && Time.timeScale != 0)
+            if (Input.GetButton("attack") && timer >= timeBetweenBullets && Time.timeScale != 0)
             {
                 // ... shoot the gun.
                 Shoot();

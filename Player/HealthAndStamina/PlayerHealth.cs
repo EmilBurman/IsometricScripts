@@ -18,7 +18,7 @@ namespace CompleteProject
 
         Animator anim;                                              // Reference to the Animator component.
         AudioSource playerAudio;                                    // Reference to the AudioSource component.
-        PlayerMovement playerMovement;                              // Reference to the player's movement.
+        //PlayerMovement playerMovement;                              // Reference to the player's movement.
         PlayerShooting playerShooting;                              // Reference to the PlayerShooting script.
         bool isDead;                                                // Whether the player is dead.
         bool damaged;                                               // True when the player gets damaged.
@@ -29,7 +29,7 @@ namespace CompleteProject
             // Setting up the references.
             anim = GetComponent <Animator> ();
             playerAudio = GetComponent <AudioSource> ();
-            playerMovement = GetComponent <PlayerMovement> ();
+            //playerMovement = GetComponent <PlayerMovement> ();
             playerShooting = GetComponentInChildren <PlayerShooting> ();
 
             // Set the initial health of the player.
@@ -96,7 +96,7 @@ namespace CompleteProject
             playerAudio.Play ();
 
             // Turn off the movement and shooting scripts.
-            playerMovement.enabled = false;
+            //playerMovement.enabled = false;
             playerShooting.enabled = false;
         }
 

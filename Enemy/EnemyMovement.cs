@@ -1,39 +1,43 @@
 ﻿using UnityEngine;
 using System.Collections;
+using CompleteProject;
 
-namespace CompleteProject
+namespace CloudsOfAvarice
 {
-    public class EnemyMovement : MonoBehaviour
+    namespace CompleteProject
     {
-        Transform player;                               // Reference to the player's position.
-        PlayerHealth playerHealth;                      // Reference to the player's health.
-        EnemyHealth enemyHealth;                        // Reference to this enemy's health.
-        UnityEngine.AI.NavMeshAgent nav;                // Reference to the nav mesh agent.
-
-
-        void Awake ()
+        public class EnemyMovement : MonoBehaviour
         {
-            // Set up the references.
-            player = GameObject.FindGameObjectWithTag (Tags.PLAYER).transform;
-            playerHealth = player.GetComponent <PlayerHealth> ();
-            enemyHealth = GetComponent <EnemyHealth> ();
-            nav = GetComponent <UnityEngine.AI.NavMeshAgent> ();
-        }
+            Transform player;                               // Reference to the player's position.
+            PlayerHealth playerHealth;                      // Reference to the player's health.
+            EnemyHealth enemyHealth;                        // Reference to this enemy's health.
+            UnityEngine.AI.NavMeshAgent nav;                // Reference to the nav mesh agent.
 
 
-        void Update ()
-        {
-            // If the enemy and the player have health left...
-            if(enemyHealth.currentHealth > 0 && playerHealth.currentHealth > 0)
+            void Awake()
             {
-                // ... set the destination of the nav mesh agent to the player.
-                nav.SetDestination (player.position);
+                // Set up the references.
+                player = GameObject.FindGameObjectWithTag(Tags.PLAYER).transform;
+                playerHealth = player.GetComponent<PlayerHealth>();
+                enemyHealth = GetComponent<EnemyHealth>();
+                nav = GetComponent<UnityEngine.AI.NavMeshAgent>();
             }
-            // Otherwise...
-            else
+
+
+            void Update()
             {
-                // ... disable the nav mesh agent.
-                nav.enabled = false;
+                // If the enemy and the player have health left...
+                if (enemyHealth.currentHealth > 0 && playerHealth.currentHealth > 0)
+                {
+                    // ... set the destination of the nav mesh agent to the player.
+                    nav.SetDestination(player.position);
+                }
+                // Otherwise...
+                else
+                {
+                    // ... disable the nav mesh agent.
+                    nav.enabled = false;
+                }
             }
         }
     }

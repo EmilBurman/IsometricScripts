@@ -13,7 +13,7 @@ namespace CloudsOfAvarice
         public float distanceToRemoveTargeting;         // If object is too far away, remove targeting
 
         [Header("Automatic re-target on death")]
-        public bool retargetOnTargetDeath;
+        public bool retargetOnTargetDeath;              // If a new target should automatically be picked on first targets death.
 
         [Header("Setup for canvas, UI element to display and camera")]
         public Canvas completeViewportCanvas;           // This needs to be the complete screen.
@@ -26,9 +26,9 @@ namespace CloudsOfAvarice
 
         bool currentlyTargeting;                        // Bool for keeping track of targeting is active.
 
-        // Which player to track.
+        // Which entity to track.
         GameObject localEntity;
-        IMovement movementScript;                      
+        IMovement movementScript;
         #endregion
 
         #region Inital setup
@@ -61,15 +61,12 @@ namespace CloudsOfAvarice
             if (currentlyTargeting)
             {
                 PlaceAndMaintainUIOnTarget();
-                if (Vector3.Distance(nearestEntityToTarget.position, localEntity.transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
-                    RemoveTargeting();
-                if (retargetOnTargetDeath /*&& and check for target health*/)
-                    FindAndTargetClosestObjectByLayerAndTag();
+                CheckTargetEntityStatus();
             }
             else
             {
                 if (Input.GetButtonDown(Inputs.TARGET))
-                    FindAndTargetClosestObjectByLayerAndTag();
+                    FindAndTargetClosestEntityByLayerAndTag();
             }
         }
 
@@ -78,10 +75,34 @@ namespace CloudsOfAvarice
             if (nearestEntityToTarget != null)
                 objectToDisplay.transform.position = WorldToCanvasPosition(nearestEntityToTarget.position);
         }
+
+        void CheckTargetEntityStatus()
+        {
+            if (nearestEntityToTarget != null)
+            {
+                if (IsTargetEntityAlive())
+                {
+                    if (Vector3.Distance(nearestEntityToTarget.position, localEntity.transform.position) > distanceToRemoveTargeting || Input.GetButtonDown(Inputs.TARGET))
+                        RemoveTargeting();
+                }
+                else if (retargetOnTargetDeath)
+                    FindAndTargetClosestEntityByLayerAndTag();
+                else
+                    RemoveTargeting();
+            }
+            else
+                RemoveTargeting();
+        }
+
+        //TODO Get refrence to entity health, check if it's alive.
+        bool IsTargetEntityAlive()
+        {
+            return true;
+        }
         #endregion
 
         #region Visual management
-        void FindAndTargetClosestObjectByLayerAndTag()
+        void FindAndTargetClosestEntityByLayerAndTag()
         {
             //Get nearbyPotentialTargets in radius by layer
             Collider[] nearbyPotentialTargets = Physics.OverlapSphere(localEntity.transform.position, radiusToCheck, layerToCheck);
@@ -110,9 +131,11 @@ namespace CloudsOfAvarice
                 }
             }
 
-            // If a target is found, set targeting as true and move state to targeting
+            // If a target is found, set targeting as true and move state to targeting. Otherwise remove targeting
             if (nearestEntityToTarget != null)
                 ApplyTargeting();
+            else
+                RemoveTargeting();
         }
 
         void ApplyTargeting()
@@ -131,7 +154,7 @@ namespace CloudsOfAvarice
         void ToggleTargetVisual()
         {
             // Clear nearest entity if not targeting is active
-            if(!currentlyTargeting)
+            if (!currentlyTargeting)
                 nearestEntityToTarget = null;
 
             // Call movement script to set lookAt() true/false and target 

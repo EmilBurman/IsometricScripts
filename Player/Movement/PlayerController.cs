@@ -47,7 +47,7 @@ namespace CloudsOfAvarice
 
         public bool Interact()
         {
-            return Input.GetButtonUp(Inputs.JUMP);
+            return Input.GetButton(Inputs.INTERACT);
         }
         public bool AimAtTarget()
         {

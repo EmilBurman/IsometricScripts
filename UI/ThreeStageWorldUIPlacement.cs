@@ -50,7 +50,7 @@ namespace CloudsOfAvarice
         }
         #endregion
 
-        #region Unity trigger functions
+        #region Trigger functions
         void OnTriggerEnter(Collider entity)
         {
             if (entity.CompareTag(Tags.PLAYER))
@@ -70,6 +70,11 @@ namespace CloudsOfAvarice
                 DeactivateAllPrompts();
                 Debug.Log("Local player exited the area.");
             }
+        }
+
+        void TriggerInteractionEvent()
+        {
+
         }
         #endregion
 
@@ -207,6 +212,7 @@ namespace CloudsOfAvarice
 
         void DestroyThisGameObject()
         {
+            TriggerInteractionEvent();
             animatorForUI.SetBool("InteractionDone", true);
             Destroy(this.gameObject);
         }
@@ -216,7 +222,7 @@ namespace CloudsOfAvarice
             pointOfInterestUIElement.gameObject.SetActive(false);
             informationPromptUIElement.gameObject.SetActive(false);
             interactionPromptUIElement.gameObject.SetActive(false);
-            Debug.Log("Removing Ui");
+            Debug.Log("Deactivating Ui");
         }
 
         void RotateToFacePlayer()

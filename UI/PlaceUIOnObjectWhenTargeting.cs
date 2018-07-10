@@ -154,25 +154,25 @@ namespace CloudsOfAvarice
 
         void ToggleTargetVisual()
         {
-            // Clear nearest entity if not targeting is active
+            // Clear nearest entity if targeting is not active
             if (!currentlyTargeting)
                 nearestEntityToTarget = null;
 
-            // Call movement script to set lookAt() true/false and target 
+            // Call movement script to set lookAt() true/false and current target
             movementScript.ToggleTargeting(currentlyTargeting, nearestEntityToTarget);
 
-            // Set targeting object true/false
+            // Set targeting visual object true/false
             objectToDisplay.SetActive(currentlyTargeting);
         }
 
         //Translate the target position from worldspace to canvas space
         Vector3 WorldToCanvasPosition(Vector3 positionOfTarget)
         {
-            //Get worldspace(vector3) from camera and translate to canvas (vector2)
+            //Get worldspace(Vector3) from camera and translate to canvas (Vector2)
             Vector2 positionOnCanvasFromWorldSpace = cameraToShowTargetFrom.WorldToViewportPoint(positionOfTarget);
 
-            //Calculate position considering our percentage, using our canvas size
-            //So if canvas size is (1100,500), and percentage is (0.5,0.5), current value will be (550,250)
+            //Calculate position considering percentage, using our canvas size
+            //If canvas size is (1100,500), and percentage is (0.5,0.5), current value will be (550,250)
             positionOnCanvasFromWorldSpace.x *= completeScreenRectTransform.sizeDelta.x;
             positionOnCanvasFromWorldSpace.y *= completeScreenRectTransform.sizeDelta.y;
 

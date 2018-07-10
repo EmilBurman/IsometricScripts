@@ -49,7 +49,12 @@ namespace CloudsOfAvarice
         {
             return Input.GetButtonUp(Inputs.JUMP);
         }
+        public bool AimAtTarget()
+        {
+            return Input.GetButton(Inputs.AIM);
+        }
         #endregion
+
 
         // Use this for initialization
         void Start()

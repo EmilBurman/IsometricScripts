@@ -29,6 +29,7 @@ namespace CloudsOfAvarice
         bool Sprint();
         bool Attack();
         bool Interact();
+        bool AimAtTarget();
     }
 
     public interface IJump

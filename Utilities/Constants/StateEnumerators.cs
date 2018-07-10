@@ -76,6 +76,7 @@
             Poi,
             InfoPrompt,
             InteractionPrompt,
+            Interacting,
             DeactivateUi
         }
     }

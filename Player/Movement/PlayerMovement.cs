@@ -39,6 +39,7 @@ namespace CloudsOfAvarice
         float camRayLength = 100f;          // The length of the ray from the camera into the scene.
         bool currentlyTargeting;            // Check if targeting
         Transform target;                   // If targeting, target this transform position
+        IController3D controller;           
         Quaternion movementDisplacement;
 
         void Awake()
@@ -53,29 +54,23 @@ namespace CloudsOfAvarice
             // Set up references.
             anim = GetComponent<Animator>();
             playerRigidbody = GetComponent<Rigidbody>();
+            controller = GetComponent<IController3D>();
         }
 
         void FixedUpdate()
         {
-            // Store the input axes.
-            float horizontalAxis = Input.GetAxisRaw(Inputs.HORIZONTALMOVEMENT);
-            float verticalAxis = Input.GetAxisRaw(Inputs.VERTICALMOVEMENT);
-            bool jump = Input.GetButtonDown(Inputs.JUMP);
-            bool sprint = Input.GetButton(Inputs.SPRINT);
-            bool manualAim = Input.GetButton(Inputs.AIM);
-
             // Move the player around the scene.
-            Move(horizontalAxis, verticalAxis, sprint);
-            Jump(jump);
+            Move(controller.MoveHorizontal(), controller.MoveVertical(), controller.Sprint());
+            Jump(controller.Jump());
 
             // Turn the player to face the mouse cursor if aiming or towards target if toggled.
             if (!currentlyTargeting)
-                Turning(manualAim);
+                Turning(controller.AimAtTarget());
             else
                 TargetTurning();
 
             // Animate the player.
-            Animating(horizontalAxis, verticalAxis, sprint);
+            Animating(controller.MoveHorizontal(), controller.MoveVertical(), controller.Sprint());
         }
 
         void Move(float h, float v, bool sprint)
@@ -148,7 +143,7 @@ namespace CloudsOfAvarice
 
             // Tell the animator whether or not the player is walking.
             if (moving && sprint)
-                anim.SetBool("IsSprinting", sprint);
+                Debug.Log("Sprinting");//anim.SetBool("IsSprinting", sprint);
             else
                 anim.SetBool("IsWalking", moving);
         }

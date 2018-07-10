@@ -21,9 +21,14 @@ namespace CloudsOfAvarice
 
         // Internal variables
         Transform localPlayer;
-        float distanceToEntity;
         Transform placementPositionForUI;
+        Animator animatorForUI;
+        float distanceToEntity;
         WorldUiState uiState;
+        bool displayPointOfInterestImage;
+        bool displayInformationImage;
+        bool displayInteractionImage;
+
         #endregion
 
         #region Initalization
@@ -32,7 +37,7 @@ namespace CloudsOfAvarice
             alphaMax.a = 1f;
             alphaMin.a = 0f;
             placementPositionForUI = this.transform;
-            InstantiateUiElements();
+            animatorForUI = GetComponent<Animator>();
             RemoveUI();
             /* This should check if there are three scripts attached to this gameobject
              * Point of interest
@@ -97,18 +102,22 @@ namespace CloudsOfAvarice
                 case WorldUiState.NoUi:
                     if (DistanceToPlayer() < minDistPointOfInterest)
                     {
-                        ShowPointOfInterestPrompt();
+                        displayPointOfInterestImage = true;
+                        ManagePointOfInterestImage();
                         uiState = WorldUiState.Poi;
                     }
                     break;
                 case WorldUiState.Poi:
                     if (DistanceToPlayer() < minDistInformationPrompt)
                     {
-                        ShowObjectInformationPrompt();
+                        displayInformationImage = true;
+                        ManageInformationImage();
                         uiState = WorldUiState.InfoPrompt;
                     }
                     else if (DistanceToPlayer() > minDistPointOfInterest)
                     {
+                        displayInformationImage = false;
+                        ManagePointOfInterestImage();
                         RemoveUI();
                         uiState = WorldUiState.NoUi;
                     }
@@ -116,28 +125,32 @@ namespace CloudsOfAvarice
                 case WorldUiState.InfoPrompt:
                     if (DistanceToPlayer() < minDistInteractionPrompt)
                     {
-                        ShowInteractionPrompt();
+                        displayInteractionImage = true;
+                        ManageInteractionImage();
                         uiState = WorldUiState.InteractionPrompt;
                     }
                     else if (DistanceToPlayer() > minDistInformationPrompt)
                     {
-                        ShowPointOfInterestPrompt();
+                        displayInformationImage = false;
+                        ManageInformationImage();
                         uiState = WorldUiState.Poi;
                     }
                     break;
                 case WorldUiState.InteractionPrompt:
-                    /*
                     if (localPlayer.GetComponent<IController3D>().Interact())
                     {
-                        RemoveUI();
-                        uiState = WorldUiState.DeactivateUi;
+                        DisplayInteractionAnimation();
+                        uiState = WorldUiState.Interacting;
                     }
-                    */
                     if (DistanceToPlayer() > minDistInteractionPrompt)
                     {
-                        ShowObjectInformationPrompt();
+                        displayInteractionImage = false;
+                        ManageInteractionImage();
                         uiState = WorldUiState.InfoPrompt;
                     }
+                    break;
+                case WorldUiState.Interacting:
+                    //this.gameObject(deactive);
                     break;
                 case WorldUiState.DeactivateUi:
                     //this.gameObject(deactive);
@@ -161,22 +174,32 @@ namespace CloudsOfAvarice
         }
 
         #region UiStateFunctions
-        void ShowPointOfInterestPrompt()
+        void ManagePointOfInterestImage()
         {
+            animatorForUI.SetBool("WithinPointOfInterestRange", displayPointOfInterestImage);
             pointOfInterestUIElement.color = alphaMax;
             Debug.Log("Showing Poi");
         }
 
 
-        void ShowObjectInformationPrompt()
+        void ManageInformationImage()
         {
+            animatorForUI.SetBool("WithinInformationRange", displayInformationImage);
             informationPromptUIElement.color = alphaMax;
             Debug.Log("Showing InformationPrompt");
         }
 
-        void ShowInteractionPrompt()
+        void ManageInteractionImage()
         {
+            animatorForUI.SetBool("WithinInteractionRange", displayInteractionImage);
             interactionPromptUIElement.color = alphaMax;
+            Debug.Log("Showing InteractionPrompt");
+        }
+
+        void DisplayInteractionAnimation()
+        {
+            animatorForUI.SetBool("InteractingWithObject", localPlayer.GetComponent<IController3D>().Interact());
+            //interactionPromptUIElement.color = alphaMax;
             Debug.Log("Showing InteractionPrompt");
         }
 
@@ -186,13 +209,6 @@ namespace CloudsOfAvarice
             informationPromptUIElement.color = alphaMin;
             interactionPromptUIElement.color = alphaMin;
             Debug.Log("Removing Ui");
-        }
-
-        void InstantiateUiElements()
-        {
-            pointOfInterestUIElement.transform.position = this.gameObject.transform.position;
-            informationPromptUIElement.transform.position = this.gameObject.transform.position;
-            interactionPromptUIElement.transform.position = this.gameObject.transform.position;
         }
 
         void RotateUI()

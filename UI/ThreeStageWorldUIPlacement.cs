@@ -154,6 +154,7 @@ namespace CloudsOfAvarice
 
                     if (DistanceToPlayer() > minDistInteractionPrompt)
                     {
+                        DisplayInteractionAnimation(false);
                         ManageInteractionImage(false);
                         uiState = WorldUiState.InfoPrompt;
                     }
@@ -196,7 +197,7 @@ namespace CloudsOfAvarice
         IEnumerator InteractionTimer()
         {
             time = 0;
-            while (time < timeForInteracting && CheckIfPlayerIsInteracting())
+            while (time < timeForInteracting && CheckIfPlayerIsInteracting() && DistanceToPlayer() < minDistInteractionPrompt)
             {
                 time += Time.fixedDeltaTime;
                 Debug.Log(time);

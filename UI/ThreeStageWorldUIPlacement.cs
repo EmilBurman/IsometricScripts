@@ -26,7 +26,9 @@ namespace CloudsOfAvarice
         Transform localPlayer;
         IController3D localPlayerInteracting;
         Vector3 placementPositionForUI;
-        Animator animatorForUI;
+        Animator firstStageAnimator;
+        Animator secondStageAnimator;
+        Animator thirdStageAnimator;
         WorldUiState uiState;
 
         float time;
@@ -35,8 +37,11 @@ namespace CloudsOfAvarice
         #region Initalization
         void Start()
         {
+            localPlayer = null;
             placementPositionForUI = pointOfInterestUIElement.transform.position;
-            animatorForUI = GetComponent<Animator>();
+            firstStageAnimator = pointOfInterestUIElement.gameObject.GetComponent<Animator>();
+            secondStageAnimator = informationPromptUIElement.gameObject.GetComponent<Animator>();
+            thirdStageAnimator = interactionPromptUIElement.gameObject.GetComponent<Animator>();
             DeactivateAllPrompts();
         }
 
@@ -97,7 +102,10 @@ namespace CloudsOfAvarice
 
         float DistanceToPlayer()
         {
-            return Vector3.Distance(placementPositionForUI, localPlayer.position);
+            if (localPlayer != null)
+                return Vector3.Distance(placementPositionForUI, localPlayer.position);
+            else
+                return 500f;
         }
 
         float AngleToPlayer()
@@ -167,28 +175,25 @@ namespace CloudsOfAvarice
 
         void ManagePointOfInterestImage(bool status)
         {
-            pointOfInterestUIElement.gameObject.SetActive(status);
-            animatorForUI.SetBool("WithinPointOfInterestRange", status);
+            firstStageAnimator.SetBool("Active", status);
             Debug.Log("Showing Poi");
         }
 
         void ManageInformationImage(bool status)
         {
-            informationPromptUIElement.gameObject.SetActive(status);
-            animatorForUI.SetBool("WithinInformationRange", status);
+            secondStageAnimator.SetBool("Active", status);
             Debug.Log("Showing InformationPrompt");
         }
 
         void ManageInteractionImage(bool status)
         {
-            interactionPromptUIElement.gameObject.SetActive(status);
-            animatorForUI.SetBool("WithinInteractionRange", status);
+            thirdStageAnimator.SetBool("Active", status);
             Debug.Log("Showing InteractionPrompt");
         }
 
         void DisplayInteractionAnimation(bool status)
         {
-            animatorForUI.SetBool("InteractingWithObject", status);
+            thirdStageAnimator.SetBool("Interacting", status);
             if (status && time == 0)
                 StartCoroutine(InteractionTimer());
             Debug.Log("Can interact with object");
@@ -214,15 +219,15 @@ namespace CloudsOfAvarice
         void DestroyThisGameObject()
         {
             TriggerInteractionEvent();
-            animatorForUI.SetBool("InteractionDone", true);
+            thirdStageAnimator.SetBool("InteractionDone", true);
             Destroy(this.gameObject);
         }
 
         void DeactivateAllPrompts()
         {
-            pointOfInterestUIElement.gameObject.SetActive(false);
-            informationPromptUIElement.gameObject.SetActive(false);
-            interactionPromptUIElement.gameObject.SetActive(false);
+            ManagePointOfInterestImage(false);
+            ManageInformationImage(false);
+            ManageInteractionImage(false);
             Debug.Log("Deactivating Ui");
         }
 
